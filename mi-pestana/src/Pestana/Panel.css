@@ -1,0 +1,188 @@
+.card-header {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: .75rem;
+}
+.card-header h1 { margin: 0; font-size: 1.2rem; font-weight: 700; }
+.card-header p  { margin: .15rem 0 0 0; font-size: .92rem; color: #93a8bf; }
+
+.ia-icon {
+  width: 36px; height: 36px; color: #7dd3fc;
+  filter: drop-shadow(0 0 10px rgba(125,211,252,.28));
+}
+
+/* Acciones en columna */
+.panel-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-auto-rows: auto; /* botón, stats, botón */
+  gap: .7rem;
+  min-height: 0;
+}
+
+/* Botón “vitro” sobrio */
+.induction-btn {
+  position: relative;
+  padding: .7rem .95rem;
+  background: linear-gradient(180deg, #101828, #0a1220);
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.10);
+  color: #eef5ff;
+  font-size: .98rem;
+  display: inline-flex; align-items: center; gap: .55rem;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 12px 26px rgba(0,0,0,.45);
+  cursor: pointer; user-select: none; overflow: hidden;
+  transition: transform .04s ease-in-out, border-color .2s ease;
+}
+.induction-btn:active { transform: scale(.985); }
+.induction-btn.subtle::before { opacity: 0; }
+.induction-btn.subtle:hover { border-color: rgba(125,211,252,.25); }
+.induction-btn::after {
+  content: ""; position: absolute; left: 10%; right: 10%; top: 7%;
+  height: 16%; border-radius: 9999px;
+  background: linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,0));
+  filter: blur(2px); pointer-events: none;
+}
+.induction-btn .btn-label { flex: 1; text-align: left; }
+.induction-btn .btn-right  { margin-left: auto; opacity: .7; }
+
+.led-dot {
+  width: .65rem; height: .65rem; border-radius: 9999px; flex-shrink: 0;
+  background: radial-gradient(circle at 40% 40%, #baf4df, #34d399 60%, #065f46 100%);
+  box-shadow: 0 0 10px rgba(16,185,129,.55), 0 0 18px rgba(16,185,129,.35);
+}
+
+/* Brief del agente */
+.panel-brief {
+  background: rgba(11,18,32,.5);
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 10px;
+  padding: .85rem;
+  overflow: auto;
+}
+.panel-brief h3 { margin: 0 0 .4rem 0; font-size: 1rem; font-weight: 700; }
+.panel-brief p  { margin: 0 0 .45rem 0; color: #d1d9e6; line-height: 1.35; }
+.panel-brief ul { margin: 0; padding-left: 1.1rem; color: #9fb1c5; }
+
+/* Stats debajo del botón cuando hay cuenta elegida */
+.social-stats {
+  margin-top: .5rem;
+  background: rgba(11,18,32,.5);
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 10px;
+  padding: .85rem;
+  display: grid;
+  gap: .7rem;
+  max-height: 28dvh;     /* evita que se dispare la altura */
+  overflow: auto;        /* scroll interno si hace falta */
+  overflow-x: hidden;   /* oculta scroll horizontal SOLO aquí */
+}
+.stats-head {
+  display: grid; grid-template-columns: auto 1fr; gap: .6rem; align-items: center;
+}
+.avatar {
+  width: 36px; height: 36px; border-radius: 9999px;
+  display: grid; place-items: center;
+  background: rgba(125,211,252,.15);
+  color: #7dd3fc; border: 1px solid rgba(125,211,252,.3);
+  font-weight: 700;
+}
+.avatar.small { width: 28px; height: 28px; font-size: .85rem; }
+.user { font-weight: 700; }
+.name { color: #9fb1c5; font-size: .9rem; }
+
+/* antes: grid-template-columns: repeat(3, 1fr); */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .6rem;
+  min-width: 0;   /* permite contraer columnas */
+}
+
+.stat {
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 8px;
+  padding: .6rem;
+  text-align: center;
+}
+.stat-num   { display:block; font-weight: 800; }
+.stat-label { display:block; color:#9fb1c5; font-size:.85rem; }
+.stats-note { margin: 0; color: #93a8bf; font-size: .85rem; }
+
+/* Modal social (selector de red / cuentas) */
+.social-modal-overlay {
+  position: fixed; inset: 0; z-index: 60;
+  background: rgba(0,0,0,.55);
+  display: grid; place-items: center;
+}
+.social-modal {
+  width: min(640px, 92vw);
+  background: #0e1a2c;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 12px;
+  box-shadow: 0 25px 80px rgba(0,0,0,.6);
+  padding: 1rem; display: grid; gap: 1rem;
+}
+.social-modal-head {
+  display: grid; grid-template-columns: 1fr auto; align-items: center;
+}
+.social-modal-head h3 { margin: 0; }
+
+/* Tiles de redes */
+.network-grid {
+  display: grid; grid-template-columns: repeat(4, minmax(120px, 1fr));
+  gap: .8rem;
+}
+@media (max-width: 560px) {
+  .network-grid { grid-template-columns: repeat(2, 1fr); }
+}
+.network-tile {
+  border: 1px solid rgba(255,255,255,.08);
+  background: rgba(255,255,255,.03);
+  border-radius: 10px;
+  padding: .9rem;
+  display: grid; gap: .4rem; justify-items: center;
+  cursor: pointer;
+}
+.network-tile:hover { border-color: rgba(125,211,252,.35); }
+.tile-logo {
+  width: 42px; height: 42px; border-radius: 9999px;
+  display: grid; place-items: center; font-weight: 800;
+  color: #7dd3fc; border: 1px solid rgba(125,211,252,.3);
+  background: radial-gradient(60% 70% at 50% 20%, rgba(255,255,255,.15), rgba(255,255,255,0));
+}
+.tile-name { color: #dbeafe; font-weight: 600; }
+.network-tile.instagram .tile-logo { color: #f7c6ff; border-color: rgba(247,198,255,.35); }
+
+/* Paso cuentas */
+.account-step { display: grid; gap: .8rem; }
+.account-search input {
+  width: 100%; padding: .7rem .9rem;
+  background: #0b1220; color: #e2e8f0;
+  border: 1px solid rgba(255,255,255,.08); border-radius: 10px;
+  outline: none;
+}
+.account-list {
+  display: grid; gap: .5rem; max-height: 320px; overflow: auto;  /* scroll interno */
+}
+.account-item {
+  display: grid; grid-template-columns: auto 1fr auto; align-items: center;
+  gap: .6rem; padding: .55rem .65rem;
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 10px; cursor: pointer; text-align: left;
+}
+.account-item:hover { border-color: rgba(125,211,252,.3); }
+.account-meta .account-user { font-weight: 700; }
+.account-meta .account-name { color: #9fb1c5; font-size: .9rem; }
+.account-kpis { color: #9fb1c5; font-size: .85rem; display: grid; gap: .2rem; justify-items: end; }
+.no-results { color: #9fb1c5; text-align: center; padding: .6rem 0; }
+
+/* Límite general del panel para que no empuje la página completa */
+.card-panel {
+  max-height: calc(100dvh - 2.5rem);
+  overflow: auto;     /* si sobra, scroll interno del panel */
+  min-height: 0;
+}
