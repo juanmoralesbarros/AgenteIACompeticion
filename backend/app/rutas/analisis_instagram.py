@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from typing import Any, Dict, List, Optional, Tuple
 import os
 import requests
+from ..services.deteccion_sentimientos import analyze_texts
 
 router = APIRouter(prefix="/analisis/instagram", tags=["análisis-instagram"])
 
@@ -60,6 +61,8 @@ class CommentOut(BaseModel):
     user_id: Optional[str] = None
     user_username: Optional[str] = None
     user_full_name: Optional[str] = None
+    sentiment_label: Optional[str] = None
+    sentiment_score: Optional[float] = None
 
 class PostCommentsOut(BaseModel):
     code: str
@@ -157,8 +160,18 @@ def obtener_comentarios(
         total_for_post = 0
         comments_out: List[CommentOut] = []
 
-        for com in items[:max_comments_per_post]:
-            user_obj = com.get("user") or {}
+        # === Sentimiento (batch con Keras/TF) ===
+        slice_items = items[:max_comments_per_post]
+        texts_batch = [ (it or {}).get("text") for it in slice_items ]
+        try:
+            sent_batch = analyze_texts(texts_batch)  # [{"label": str|None, "score": float|None}, ...]
+        except Exception as e:
+            # Si el servicio falla, seguimos sin sentimiento para no romper el flujo
+            print(f"[GET /comentarios] WARN sentimiento falló: {e}", flush=True)
+            sent_batch = [{"label": None, "score": None} for _ in texts_batch]
+
+        for com, sent in zip(slice_items, sent_batch):
+            user_obj = (com or {}).get("user") or {}
             comments_out.append(
                 CommentOut(
                     id=str(com.get("id")) if com.get("id") is not None else None,
@@ -168,9 +181,13 @@ def obtener_comentarios(
                     user_id=str(user_obj.get("id")) if user_obj.get("id") is not None else None,
                     user_username=user_obj.get("username"),
                     user_full_name=user_obj.get("full_name"),
+                    # ↑ asegúrate de tener estos dos campos añadidos en CommentOut
+                    sentiment_label=sent.get("label"),
+                    sentiment_score=sent.get("score"),
                 )
             )
             total_for_post += 1
+
         comments_total += total_for_post
 
         print(f"[GET /comentarios] code={code} recogidos={total_for_post} "
@@ -209,6 +226,7 @@ def obtener_comentarios(
         items=results,
         note=note,
     )
+
 
 # =========================
 # OPCIONAL: WebSocket de progreso
@@ -295,8 +313,18 @@ async def ws_comentarios(ws: WebSocket):
             total_for_post = 0
             comments_out: List[CommentOut] = []
 
-            for com in items[:max_comments_per_post]:
-                user_obj = com.get("user") or {}
+            # === Sentimiento (batch) ===
+            slice_items = items[:max_comments_per_post]
+            texts_batch = [ (it or {}).get("text") for it in slice_items ]
+
+            try:
+                sent_batch = analyze_texts(texts_batch)  # [{"label":..., "score":...}, ...]
+            except Exception as e:
+                print(f"[WS] WARN sentimiento falló: {e}", flush=True)
+                sent_batch = [{"label": None, "score": None} for _ in texts_batch]
+
+            for com, sent in zip(slice_items, sent_batch):
+                user_obj = (com or {}).get("user") or {}
                 comments_out.append(
                     CommentOut(
                         id=str(com.get("id")) if com.get("id") is not None else None,
@@ -306,6 +334,8 @@ async def ws_comentarios(ws: WebSocket):
                         user_id=str(user_obj.get("id")) if user_obj.get("id") is not None else None,
                         user_username=user_obj.get("username"),
                         user_full_name=user_obj.get("full_name"),
+                        sentiment_label=sent.get("label"),
+                        sentiment_score=sent.get("score"),
                     )
                 )
                 total_for_post += 1
@@ -355,3 +385,4 @@ async def ws_comentarios(ws: WebSocket):
         print(f"[WS] ERROR: {e}", flush=True)
         await ws.send_json({"type": "error", "message": str(e)})
         await ws.close()
+
