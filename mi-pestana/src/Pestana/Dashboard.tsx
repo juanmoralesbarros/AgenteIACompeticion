@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useKpiScoringDemo } from "../hooks/useKpiScoringDemo";
+import { useKpiScoringV2} from "../hooks/useKpiScoringDemo";
 
 const InfoTip: React.FC<{ text: React.ReactNode }> = ({ text }) => (
   <span className="info-tip" tabIndex={0} aria-label={typeof text === "string" ? text : "Información"}>
@@ -38,7 +38,7 @@ function badgeStyle(kind: "ok" | "warn" | "bad") {
 
 const Dashboard: React.FC = () => {
   const [ruc, setRuc] = useState("");
-  const { loaded, simulate, grupos, derivados, scoreGlobal, decision, cobertura, gates } = useKpiScoringDemo();
+  const { loaded, simulate, grupos, derivados, scoreGlobal, decision, cobertura, gates } = useKpiScoringV2();
 
   useEffect(() => {
     if (!loaded) simulate(ruc);
