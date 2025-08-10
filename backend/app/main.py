@@ -8,6 +8,9 @@ from app.rutas.analisis_instagram import router as analisis_instagram_router
 
 from app.rutas.kpis_llm import router as kpis_llm_router
 
+from app.rutas.judicial_controller import router as judicial_router
+from app.rutas.sri_controller import sri_router
+
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -53,3 +56,5 @@ def root():
 # SOLO la nueva LLM en el MVP:
 app.include_router(kpis_llm_router, prefix="/api/v1")
 
+app.include_router(judicial_router, prefix="/api/v1")
+app.include_router(sri_router, prefix="/api/v1")
