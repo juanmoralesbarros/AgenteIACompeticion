@@ -5,10 +5,6 @@ import Pestaña from "./Pestana/Pestana";
 function App() {
   return (
     <Router>
-      <nav style={{ display: "flex", gap: "1rem", padding: "1rem" }}>
-        <Link to="/">Instagram Panel</Link>
-        <Link to="/kpi-legal">KPI Legal</Link>
-      </nav>
       <Routes>
         <Route path="/" element={<Pestaña />} />
 

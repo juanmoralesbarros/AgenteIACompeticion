@@ -41,7 +41,6 @@ def health():
 # Rutas API v1
 app.include_router(usuarios_router, prefix="/api/v1")
 app.include_router(info_router, prefix="/api/v1")
-<<<<<<< HEAD
 app.include_router(analisis_instagram_router, prefix="/api/v1")
 
 # Opcional: endpoint raíz
@@ -50,9 +49,7 @@ def root():
     return {"name": "AgenteIA Backend", "version": "v1"}
 
 # Para ejecutar con: uvicorn main:app --reload
-=======
 
 # SOLO la nueva LLM en el MVP:
 app.include_router(kpis_llm_router, prefix="/api/v1")
 
->>>>>>> d1b92f690fbd30de554aab20e386ce00a2c9b636
