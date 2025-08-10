@@ -95,10 +95,10 @@ const LegalNomina: React.FC<NominaProps> = ({
         empresa_ruc: empresaRuc.trim(),
         representantes: rows.map((r) => ({
           identificacion: r.identificacion.trim(),
-          tipo: r.tipo,
-          nombre: r.nombre,
-          cargo: r.cargo,
-          tipoRepresentacion: r.tipoRepresentacion,
+        //   tipo: r.tipo,
+        //   nombre: r.nombre,
+        //   cargo: r.cargo,
+        //   tipoRepresentacion: r.tipoRepresentacion,
         })),
         // Solo DEMANDADO
         roles: ["demandado"],
@@ -177,7 +177,7 @@ const LegalNomina: React.FC<NominaProps> = ({
             <div key={i} className="kpi-card" style={{ padding: 8, display: "grid", gap: 6 }}>
               <div style={{ display: "grid", gap: 6, gridTemplateColumns: "1fr 120px 1fr 1fr 100px" }}>
                 <input value={r.identificacion || ""} onChange={(e) => updateRow(i, { identificacion: e.target.value })} placeholder="Cédula/RUC" />
-                <select value={r.tipo || ""} onChange={(e) => updateRow(i, { tipo: (e.target.value || undefined) as any })}>
+                {/* <select value={r.tipo || ""} onChange={(e) => updateRow(i, { tipo: (e.target.value || undefined) as any })}>
                   <option value="">Tipo</option>
                   <option value="CEDULA">CÉDULA</option>
                   <option value="RUC">RUC</option>
@@ -185,8 +185,8 @@ const LegalNomina: React.FC<NominaProps> = ({
                 </select>
                 <input value={r.nombre || ""} onChange={(e) => updateRow(i, { nombre: e.target.value })} placeholder="Nombre" />
                 <input value={r.cargo || ""} onChange={(e) => updateRow(i, { cargo: e.target.value })} placeholder="Cargo" />
-                <input value={r.tipoRepresentacion || ""} onChange={(e) => updateRow(i, { tipoRepresentacion: e.target.value })} placeholder="Tipo rep." />
-              </div>
+                <input value={r.tipoRepresentacion || ""} onChange={(e) => updateRow(i, { tipoRepresentacion: e.target.value })} placeholder="Tipo rep." />*/}
+              </div> 
               <div style={{ display: "flex", gap: 8 }}>
                 <button type="button" className="send-btn subtle" onClick={() => removeRow(i)}>Quitar</button>
               </div>

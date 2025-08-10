@@ -1,11 +1,18 @@
-
-// src/Chat.tsx (actualizado)
-import React, { useEffect, useState } from "react";
+// src/Chat.tsx (fusionado, sin perder funcionalidades de ninguno)
+import React, { useEffect, useRef, useState } from "react";
 import "./Chat.css";
+
+// Bloque KPI + SRI
 import { useKpiScoringV2 } from "../hooks/useKpiScoringDemo";
 import Legal from "./legal/Legal";
 import LegalNomina from "./legal/LegalNomina";
 import { looksLikeRuc, sriExists, sriContribuyente, toPartialFromSRI } from "./legal/sriLogic";
+
+// Bloque tiempo real
+import { ChatWebSocket } from "../services/utilesChat";
+import Dashboard from "./Dashboard";
+
+const SHOW_DASHBOARD = true; // true => muestra el Dashboard en el modo "realtime"
 
 const Chip: React.FC<{ onClick?: () => void; children: React.ReactNode }> = ({ onClick, children }) => (
   <span className="chip" onClick={onClick} role="button" tabIndex={0}>{children}</span>
@@ -47,16 +54,22 @@ function badgeStyle(kind: "ok" | "warn" | "bad") {
   return { ...base, background: "rgba(210,50,50,.15)", color: "#b82222", border: "1px solid rgba(210,50,50,.35)" };
 }
 
-const Chat: React.FC = () => {
-  const [mode, setMode] = useState<"landing" | "kpi">("landing");
-  const [ruc, setRuc] = useState("");
+interface Message {
+  sender: "user" | "bot";
+  text: string;
+}
 
+const Chat: React.FC = () => {
+  // Selector de modo
+  const [mode, setMode] = useState<"landing" | "kpi" | "realtime">("landing");
+
+  // Estado KPI + SRI
+  const [ruc, setRuc] = useState("");
   const {
     loaded, simulate, grupos, derivados, scoreGlobal, decision, montos, cobertura, gates, pd,
     applyLegalPartial
   } = useKpiScoringV2();
 
-  // SRI UI state
   const [sriLoading, setSriLoading] = useState(false);
   const [sriMsg, setSriMsg] = useState<string>("");
   const [sriErr, setSriErr] = useState<string>("");
@@ -154,11 +167,62 @@ const Chat: React.FC = () => {
     decision === "APROBADO" ? "ok" :
     decision === "APROBADO CONDICIONES" || decision === "REVISION" ? "warn" : "bad";
 
+  // Estado chat tiempo real
+  const [connected, setConnected] = useState(false);
+  const [started, setStarted] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState("");
+
+  const wsRef = useRef<ChatWebSocket | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Solo inicia WS una vez, útil para el modo "realtime"
+    const ws = new ChatWebSocket(
+      "ws://localhost:8000/api/v1/ws",
+      (msg) => {
+        if (typeof msg === "string") {
+          setMessages((prev) => [...prev, { sender: "bot", text: msg }]);
+        } else if (msg?.message) {
+          setMessages((prev) => [...prev, { sender: "bot", text: msg.message }]);
+        }
+      },
+      () => setConnected(true)
+    );
+    ws.connect();
+    wsRef.current = ws;
+    // No cierro aquí para respetar el comportamiento del original
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const handleSend = () => {
+    if (!input.trim()) return;
+    if (!started) setStarted(true);
+    setMessages((prev) => [...prev, { sender: "user", text: input }]);
+    wsRef.current?.send(input);
+    setInput("");
+  };
+
+  const handleChipClick = (text: string) => {
+    setInput(text);
+  };
+
   return (
     <div className="card tone-chat card-chat">
       <header className="chat-header">
         <h2>Chatbot</h2>
         <p>Interactúa con tu asistente</p>
+
+        {/* Selector simple de modo para conservar ambos mundos */}
+        <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
+          <button type="button" className={`send-btn subtle ${mode === "landing" ? "active" : ""}`} onClick={() => setMode("landing")}>Landing</button>
+          <button type="button" className={`send-btn subtle ${mode === "kpi" ? "active" : ""}`} onClick={() => setMode("kpi")}>Scoring (KPI)</button>
+          <button type="button" className={`send-btn subtle ${mode === "realtime" ? "active" : ""}`} onClick={() => setMode("realtime")}>Chat tiempo real</button>
+        </div>
       </header>
 
       <div className="chat-body">
@@ -172,9 +236,11 @@ const Chat: React.FC = () => {
                 También puedes preguntarme cómo preparar tus datos.
               </p>
               <div className="quick-examples">
+                {/* Conserva chips de ambos archivos */}
                 <Chip>¿Qué formatos de archivo aceptas?</Chip>
                 <Chip>¿Cómo conecto mi cuenta de Instagram?</Chip>
                 <Chip onClick={() => setMode("kpi")}>Muestra un ejemplo de scoring</Chip>
+                <Chip onClick={() => setMode("realtime")}>Abrir chat en tiempo real</Chip>
               </div>
             </div>
           </div>
@@ -182,13 +248,15 @@ const Chat: React.FC = () => {
 
         {mode === "kpi" && (
           <div className="chat-kpi-wrap">
-            {/* Panel judicial individual */}
-            {/* <div className="card tone-chat" style={{ marginBottom: 12 }}>
+            {/* Panel judicial individual original (mantener como comentario, no eliminado) */}
+            {/*
+            <div className="card tone-chat" style={{ marginBottom: 12 }}>
               <div className="card-header">
                 <h3>Consulta Judicial</h3><span className="badge">API</span>
               </div>
               <Legal onUseInScoring={(partial) => applyLegalPartial(partial)} />
-            </div> */}
+            </div>
+            */}
 
             {/* Panel judicial de Nómina (batch) */}
             <div className="card tone-chat" style={{ marginBottom: 12 }}>
@@ -328,12 +396,67 @@ const Chat: React.FC = () => {
             )}
           </div>
         )}
+
+        {mode === "realtime" && (
+          <>
+            {SHOW_DASHBOARD ? (
+              <Dashboard />
+            ) : !started ? (
+              <div className="chat-landing in-body">
+                <div className="chat-landing-inner">
+                  <div className="chat-logo">◎</div>
+                  <h3>Bienvenido a AgenteIA</h3>
+                  <p className="hint">
+                    Conecta una red social o carga un archivo para empezar.<br />
+                    También puedes preguntarme cómo preparar tus datos.
+                  </p>
+                  <div className="quick-examples">
+                    <Chip onClick={() => handleChipClick("¿Qué formatos de archivo aceptas?")}>
+                      ¿Qué formatos de archivo aceptas?
+                    </Chip>
+                    <Chip onClick={() => handleChipClick("¿Cómo conecto mi cuenta de Instagram?")}>
+                      ¿Cómo conecto mi cuenta de Instagram?
+                    </Chip>
+                    <Chip onClick={() => handleChipClick("Muestra un ejemplo de scoring")}>
+                      Muestra un ejemplo de scoring
+                    </Chip>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="chat-messages">
+                {messages.map((m, i) => (
+                  <div key={i} className={`chat-message ${m.sender}`}>
+                    {m.text}
+                  </div>
+                ))}
+                <div ref={messagesEndRef} />
+              </div>
+            )}
+          </>
+        )}
       </div>
 
-      <form className="chat-input" onSubmit={(e) => e.preventDefault()}>
-        <input type="text" placeholder="Escribe un mensaje..." disabled aria-disabled="true" />
-        <button type="button" className="send-btn induction-btn subtle" disabled>Enviar</button>
-      </form>
+      {/* Inputs: conserva el input deshabilitado del primer archivo y el activo del segundo */}
+      {mode !== "realtime" && (
+        <form className="chat-input" onSubmit={(e) => e.preventDefault()}>
+          <input type="text" placeholder="Escribe un mensaje..." disabled aria-disabled="true" />
+          <button type="button" className="send-btn induction-btn subtle" disabled>Enviar</button>
+        </form>
+      )}
+
+      {mode === "realtime" && !SHOW_DASHBOARD && (
+        <form className="chat-input" onSubmit={(e) => { e.preventDefault(); handleSend(); }}>
+          <input
+            type="text"
+            placeholder={connected ? "Escribe un mensaje..." : "Conectando..."}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            disabled={!connected}
+          />
+          <button type="submit" className="send-btn induction-btn subtle" disabled={!connected}>Enviar</button>
+        </form>
+      )}
     </div>
   );
 };

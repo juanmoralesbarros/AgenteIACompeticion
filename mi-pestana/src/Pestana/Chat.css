@@ -1,6 +1,210 @@
 .chat-header h2 { margin: 0; font-weight: 700; }
 .chat-header p  { margin: .2rem 0 0 0; color: #93a8bf; font-size: .92rem; }
 
+
+.chat-landing {
+  display: grid; place-items: center;
+  border: 1px solid rgba(255,255,255,0.05);
+  background: rgba(11,18,32,0.55);
+  border-radius: 10px;
+  padding: 1.2rem;
+}
+.chat-landing-inner {
+  text-align: center; max-width: 640px; margin: 2.2rem 0;
+}
+.chat-logo {
+  width: 54px; height: 54px; margin: 0 auto .6rem auto;
+  border-radius: 9999px;
+  display: grid; place-items: center;
+  color: #7dd3fc; border: 1px solid rgba(125,211,252,.25);
+  background: radial-gradient(60% 70% at 50% 20%, rgba(255,255,255,.15), rgba(255,255,255,0));
+  box-shadow: 0 0 20px rgba(125,211,252,.18);
+  font-weight: 700;
+}
+.chat-landing h3 { margin: .3rem 0 .3rem 0; font-size: 1.25rem; }
+.hint { color: #c8d6ea; margin: .3rem 0 .8rem 0; }
+
+.quick-examples {
+  display: flex; flex-wrap: wrap; gap: .4rem; justify-content: center;
+}
+.chip {
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.03);
+  color: #dbeafe;
+  padding: .35rem .6rem; border-radius: 9999px; font-size: .85rem;
+}
+
+/* Input deshabilitado por ahora */
+.chat-input {
+  display: grid; grid-template-columns: 1fr auto; gap: .6rem; margin-top: 1rem;
+}
+.chat-input input {
+  padding: .75rem 1rem;
+  background: #0b1220; color: #f1f5f9;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 10px; outline: none;
+}
+.chat-input input[disabled] { opacity: .5; cursor: not-allowed; }
+.send-btn { padding: .75rem 1.1rem; }
+/* === KPIs dentro del chat (mismo look) === */
+.chat-kpi-wrap { padding: 1rem; }
+
+/* Resumen de score + derivados */
+.kpi-score-summary.card {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* Aro de score */
+.score-ring {
+  position: relative;
+  width: 140px; height: 140px; border-radius: 9999px;
+  background: conic-gradient(#2c7be5 var(--p,0%), rgba(26,33,66,1) 0);
+  box-shadow: 0 18px 50px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.ring-center {
+  position: absolute; inset: 12px; border-radius: 9999px;
+  background: #0b1220; display: grid; place-items: center;
+  font-size: 32px; font-weight: 800; color: #e2e8f0;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+/* Títulos y badges */
+.kpi-section-head h4 { margin: 0; }
+.badge {
+  display: inline-block;
+  padding: .2rem .5rem;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.04);
+  color: #dbeafe; border-radius: 9999px; font-size: .75rem;
+}
+
+/* Grid de tarjetas KPI */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: .75rem;
+}
+
+/* Tarjeta KPI con el mismo tono que tus cards */
+.kpi-card {
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 10px;
+  padding: .8rem;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+}
+
+.kpi-title { font-size: .95rem; color: #d1d9e6; }
+.kpi-value { font-size: 1.15rem; font-weight: 700; margin: .35rem 0 .5rem 0; color: #e2e8f0; }
+
+.kpi-bar {
+  height: 8px; border-radius: 6px; overflow: hidden;
+  background: #141a33; border: 1px solid rgba(255,255,255,.06);
+}
+.kpi-fill { height: 100%; background: #2c7be5; }
+
+.kpi-score { margin-top: .4rem; font-size: .8rem; color: #9fb1c5; }
+
+/* Derivados (disponible, pmax, etc.) */
+.derivados { display: grid; gap: .25rem; min-width: 260px; }
+.derivados b { color: #e7f3ff; }
+/* La tarjeta del chat tiene 3 filas: header, body, input */
+.card-chat {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  height: clamp(480px, 74vh, 86vh);   /* cabe en tu layout */
+  overflow: hidden;                   /* el scroll vive en el body */
+}
+
+/* EL TRUCO: para que 1fr pueda scrollear, necesita min-height:0 */
+.card-chat > .chat-body {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 1rem;
+}
+
+/* Centra la landing pero sin romper el scroll del body */
+.chat-landing.in-body {
+  min-height: 100%;
+  display: grid;
+  place-items: center;
+}
+
+/* El wrapper de KPIs puede crecer y scrollear dentro del body */
+.chat-kpi-wrap {
+  display: grid;
+  gap: 1rem;
+}
+
+/* Opcional: estiliza la barra de scroll para que no parezca Windows 98 */
+.card-chat > .chat-body::-webkit-scrollbar { width: 10px; }
+.card-chat > .chat-body::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,.12); border-radius: 8px;
+}
+/* Tooltip (i) */
+.info-tip{
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-left: 6px;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: help;
+  opacity: .75;
+  user-select: none;
+}
+.info-tip:focus { outline: none; box-shadow: 0 0 0 2px rgba(0,128,255,.25); }
+.info-tip .info-bubble{
+  position: absolute;
+  left: 50%;
+  bottom: 120%;
+  transform: translateX(-50%) translateY(0);
+  background: #111;
+  color: #fff;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  width: max-content;
+  max-width: 280px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.25);
+  opacity: 0;
+  transition: opacity .15s ease, transform .15s ease;
+  pointer-events: none;
+  z-index: 50;
+}
+.info-tip .info-bubble::after{
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: #111;
+}
+.info-tip:hover .info-bubble,
+.info-tip:focus .info-bubble{
+  opacity: 1;
+  transform: translateX(-50%) translateY(-6px);
+  pointer-events: auto;
+}
+
+
+
+
+.chat-header h2 { margin: 0; font-weight: 700; }
+.chat-header p  { margin: .2rem 0 0 0; color: #93a8bf; font-size: .92rem; }
+
 /* “Landing” de chat (como pantalla de inicio, no conversación) */
 .chat-landing {
   display: grid; place-items: center;
