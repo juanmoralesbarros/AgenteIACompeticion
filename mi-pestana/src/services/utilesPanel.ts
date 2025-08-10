@@ -83,3 +83,10 @@ export function clearSelectedInstagram() {
   localStorage.removeItem(KEY);
 }
 
+
+// src/services/utilesPanel.ts
+export function badgeForScore100(score: number) {
+  if (score >= 70) return { label: "Bueno", className: "kpi-badge good" };
+  if (score >= 50) return { label: "Vigilar", className: "kpi-badge watch" };
+  return { label: "Riesgo", className: "kpi-badge risk" };
+}
