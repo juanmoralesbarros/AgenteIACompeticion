@@ -83,3 +83,219 @@ export function clearSelectedInstagram() {
   localStorage.removeItem(KEY);
 }
 
+
+
+// src/services/utilesPanel.ts  (añade al final del archivo)
+
+//
+// =============== WebSocket: análisis de comentarios IG ===============
+//
+
+// =============== WebSocket: análisis de comentarios IG ===============
+
+/** Parámetros para la extracción */
+export type StreamOptions = {
+  usernameOrId: string;          // id o username (preferible id)
+  maxPosts?: number;             // límite de posts a revisar
+  maxRequests?: number;          // presupuesto total de requests (posts + comentarios)
+  maxCommentsPerPost?: number;   // máximo comentarios por post
+  sortBy?: "popular" | "recent"; // criterio del endpoint de comentarios
+};
+
+// === Tipos de mensajes del backend (discriminante: "type") ===
+export type StreamStarted = {
+  type: "started";
+  meta: {
+    username_or_id: string;
+    max_posts: number;
+    max_requests: number;
+    max_comments_per_post: number;
+    sort_by: "popular" | "recent";
+  };
+};
+
+export type StreamProgress = {
+  type: "progress";
+  collected: number;        // total acumulado
+  requestsUsed: number;     // requests usados
+  lastPostCode?: string;
+  lastBatchCount?: number;  // comentarios recibidos en el último batch
+};
+
+export type StreamPostDone = {
+  type: "post_done";
+  post: {
+    id: string;
+    code?: string | null;
+    comments_count: number;
+  };
+};
+
+// Comentario normalizado
+export type WSComment = {
+  post_code: string;
+  post_id?: string;
+  text: string;
+  username: string;
+  created_at?: string | number;
+  like_count?: number;
+};
+
+export type StreamDone = {
+  type: "done";
+  summary: {
+    postsVisited: number;
+    requestsUsed: number;
+    commentsTotal: number;
+  };
+  comments: WSComment[];   // lista completa de comentarios
+};
+
+export type StreamError = {
+  type: "error";
+  message: string;
+};
+
+export type StreamEvent =
+  | StreamStarted
+  | StreamProgress
+  | StreamPostDone
+  | StreamDone
+  | StreamError;
+
+/** Callbacks para consumir el stream en tu UI */
+export type StreamHandlers = {
+  onOpen?: () => void;
+  onStarted?: (ev: StreamStarted) => void;
+  onProgress?: (ev: StreamProgress) => void;
+  onPostDone?: (ev: StreamPostDone) => void;
+  onDone?: (ev: StreamDone) => void;
+  onError?: (ev: StreamError) => void;
+  onClose?: (ev: CloseEvent) => void;
+};
+
+// === Cálculo seguro del base WS (sin depender de BASE_URL global) ===
+function getWsBase(): string {
+  try {
+    const u = new URL(BASE_URL);
+    u.protocol = u.protocol === "https:" ? "wss:" : "ws:";
+    return u.origin;
+  } catch {
+    return BASE_URL.replace(/^https:/, "wss:").replace(/^http:/, "ws:");
+  }
+}
+
+/**
+ * Abre el WebSocket y gestiona los eventos.
+ * Devuelve el socket y un helper para cerrar.
+ */
+export function connectInstagramCommentsStream(
+  opts: StreamOptions,
+  handlers: StreamHandlers = {}
+) {
+  const url = `${getWsBase()}/api/v1/analisis/instagram/ws/comentarios`;
+  console.log("[WS] Conectando a:", url, opts);
+  const ws = new WebSocket(url);
+
+  ws.onopen = () => {
+    console.log("[WS] Conexión abierta, enviando parámetros:", opts);
+    handlers.onOpen?.();
+    ws.send(JSON.stringify({
+      username_or_id: opts.usernameOrId,
+      max_posts: opts.maxPosts ?? 12,
+      max_requests_total: opts.maxRequests ?? 30,
+      max_comments_per_post: opts.maxCommentsPerPost ?? 100,
+      sort_by: opts.sortBy ?? "popular",
+    }));
+  };
+
+ws.onmessage = (e) => {
+  try {
+    const msg = JSON.parse(e.data);
+    console.debug("[WS] Mensaje recibido:", msg);
+
+    if (msg.type === "done") {
+      // payload es AnalysisResult del backend -> lo normalizamos a tu StreamDone
+      const p = msg.payload || {};
+      const flatComments = (p.items ?? []).flatMap((it: any) => it?.comments ?? []);
+
+      const normalized: StreamDone = {
+        type: "done",
+        summary: {
+          postsVisited: Number(p.posts_checked ?? 0),
+          requestsUsed: Number(p.requests_used ?? 0),
+          commentsTotal: Number(p.comments_total ?? flatComments.length),
+        },
+        comments: flatComments,
+      };
+
+      console.debug("[WS] DONE normalizado:", normalized);
+      handlers.onDone?.(normalized);
+    } else if (msg.type === "error") {
+      handlers.onError?.({ type: "error", error: msg.message || "stream_error" } as any);
+    } else if (msg.type === "progress") {
+      handlers.onProgress?.(msg as any);
+    } else if (msg.type === "info") {
+      // opcional
+      console.debug("[WS] INFO:", msg);
+    }
+  } catch (err) {
+    console.error("[WS] JSON parse error:", err, e.data);
+    handlers.onError?.({ type: "error", error: "invalid_message_format" } as any);
+  }
+};
+
+
+  ws.onerror = (err) => {
+    console.error("[WS] Error en WebSocket:", err);
+    handlers.onError?.({ type: "error", error: "socket_error" } as any);
+  };
+
+  ws.onclose = (ev) => {
+    console.warn("[WS] Conexión cerrada:", ev);
+    handlers.onClose?.(ev);
+  };
+
+  return {
+    socket: ws,
+    close: () => { try { ws.close(); } catch {} },
+  };
+}
+
+export function streamCommentsAndCollect(
+  opts: StreamOptions,
+  progress?: Omit<StreamHandlers, "onDone" | "onClose" | "onError">
+): Promise<StreamDone> {
+  return new Promise<StreamDone>((resolve, reject) => {
+    let settled = false;
+    console.log("[WS] Iniciando streamCommentsAndCollect con opciones:", opts);
+
+    const { close } = connectInstagramCommentsStream(opts, {
+      ...progress,
+      onError: (e) => {
+        console.error("[WS] streamCommentsAndCollect -> onError", e);
+        if (!settled) {
+          settled = true;
+          close();
+          reject(new Error(e.message || "stream_error"));
+        }
+      },
+      onDone: (d) => {
+        console.log("[WS] streamCommentsAndCollect -> onDone", d);
+        if (!settled) {
+          settled = true;
+          close();
+          resolve(d);
+        }
+      },
+      onClose: (ev) => {
+        console.warn("[WS] streamCommentsAndCollect -> onClose", ev);
+        if (!settled) {
+          settled = true;
+          reject(new Error("stream_closed"));
+        }
+      },
+    });
+  });
+}
+

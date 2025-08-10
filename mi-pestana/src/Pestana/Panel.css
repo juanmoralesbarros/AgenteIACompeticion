@@ -1,3 +1,4 @@
+/* --- Cabecera --- */
 .card-header {
   display: grid;
   grid-template-columns: auto 1fr;
@@ -12,7 +13,7 @@
   filter: drop-shadow(0 0 10px rgba(125,211,252,.28));
 }
 
-/* Acciones en columna */
+/* --- Acciones (columna) --- */
 .panel-actions {
   display: grid;
   grid-template-columns: 1fr;
@@ -21,19 +22,30 @@
   min-height: 0;
 }
 
-/* Botón “vitro” sobrio */
+/* --- Botón “vitro” sobrio --- */
+/* Botón base (mismo tamaño para todos) */
 .induction-btn {
   position: relative;
+  width: 100%;
+  min-height: 44px;                /* altura uniforme */
   padding: .7rem .95rem;
   background: linear-gradient(180deg, #101828, #0a1220);
   border-radius: 10px;
-  border: 1px solid rgba(255,255,255,0.10);
+  border: 1px solid rgba(255,255,255,.10);
   color: #eef5ff;
   font-size: .98rem;
-  display: inline-flex; align-items: center; gap: .55rem;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 12px 26px rgba(0,0,0,.45);
-  cursor: pointer; user-select: none; overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  gap: .55rem;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 12px 26px rgba(0,0,0,.45);
+  cursor: pointer;
+  user-select: none;
+  overflow: hidden;
   transition: transform .04s ease-in-out, border-color .2s ease;
+}
+.induction-btn.disabled:hover {
+  background-color: inherit; /* o el color base */
+  opacity: 0.6;
 }
 .induction-btn:active { transform: scale(.985); }
 .induction-btn.subtle::before { opacity: 0; }
@@ -44,16 +56,50 @@
   background: linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,0));
   filter: blur(2px); pointer-events: none;
 }
-.induction-btn .btn-label { flex: 1; text-align: left; }
-.induction-btn .btn-right  { margin-left: auto; opacity: .7; }
+.induction-btn .btn-label { flex: 1; min-width: 0; text-align: left; }
 
+.induction-btn .btn-right  { margin-left: auto; opacity: .7; }
+/* Variante con flecha interna (los dos botones la usan) */
+.induction-btn.social-btn { padding-right: 2.8rem; } /* deja sitio para la flecha */
+
+
+/* La “flecha” es clicable y no abre el modal (tiene stopPropagation en TSX) */
+/* Flecha: mismo estilo y posición en ambos botones */
+.induction-btn .btn-right.arrow {
+  position: absolute;
+  right: .45rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2rem;
+  height: 2rem;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,.10);
+  background: rgba(255,255,255,.04);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+  opacity: .85;
+  transition: transform .15s ease, border-color .2s ease, background .2s ease, opacity .2s ease;
+}
+
+.induction-btn .btn-right.arrow:hover {
+  border-color: rgba(125,211,252,.35);
+  background: rgba(125,211,252,.08);
+  opacity: 1;
+}
+/* Si quieres animar cuando está “abierto” (solo Red social) */
+.induction-btn .btn-right.arrow.open {
+  transform: translateY(-50%) rotate(180deg);
+}
+
+/* LED del botón */
 .led-dot {
   width: .65rem; height: .65rem; border-radius: 9999px; flex-shrink: 0;
   background: radial-gradient(circle at 40% 40%, #baf4df, #34d399 60%, #065f46 100%);
   box-shadow: 0 0 10px rgba(16,185,129,.55), 0 0 18px rgba(16,185,129,.35);
 }
 
-/* Brief del agente */
+/* --- Brief del agente (se oculta por lógica en TSX cuando hay stats abiertas) --- */
 .panel-brief {
   background: rgba(11,18,32,.5);
   border: 1px solid rgba(255,255,255,.06);
@@ -65,7 +111,7 @@
 .panel-brief p  { margin: 0 0 .45rem 0; color: #d1d9e6; line-height: 1.35; }
 .panel-brief ul { margin: 0; padding-left: 1.1rem; color: #9fb1c5; }
 
-/* Stats debajo del botón cuando hay cuenta elegida */
+/* --- Stats debajo del botón cuando hay cuenta elegida (colapsables) --- */
 .social-stats {
   margin-top: .5rem;
   background: rgba(11,18,32,.5);
@@ -75,8 +121,8 @@
   display: grid;
   gap: .7rem;
   max-height: 28dvh;     /* evita que se dispare la altura */
-  overflow: auto;        /* scroll interno si hace falta */
-  overflow-x: hidden;   /* oculta scroll horizontal SOLO aquí */
+  overflow-y: auto;      /* scroll vertical si hace falta */
+  overflow-x: hidden;    /* oculta scroll horizontal SOLO aquí */
 }
 .stats-head {
   display: grid; grid-template-columns: auto 1fr; gap: .6rem; align-items: center;
@@ -92,14 +138,12 @@
 .user { font-weight: 700; }
 .name { color: #9fb1c5; font-size: .9rem; }
 
-/* antes: grid-template-columns: repeat(3, 1fr); */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: .6rem;
   min-width: 0;   /* permite contraer columnas */
 }
-
 .stat {
   background: rgba(255,255,255,.03);
   border: 1px solid rgba(255,255,255,.06);
@@ -111,7 +155,7 @@
 .stat-label { display:block; color:#9fb1c5; font-size:.85rem; }
 .stats-note { margin: 0; color: #93a8bf; font-size: .85rem; }
 
-/* Modal social (selector de red / cuentas) */
+/* --- Modal social (selector de red / cuentas) --- */
 .social-modal-overlay {
   position: fixed; inset: 0; z-index: 60;
   background: rgba(0,0,0,.55);
@@ -130,7 +174,7 @@
 }
 .social-modal-head h3 { margin: 0; }
 
-/* Tiles de redes */
+/* Tiles de redes (paso 1) */
 .network-grid {
   display: grid; grid-template-columns: repeat(4, minmax(120px, 1fr));
   gap: .8rem;
@@ -156,7 +200,7 @@
 .tile-name { color: #dbeafe; font-weight: 600; }
 .network-tile.instagram .tile-logo { color: #f7c6ff; border-color: rgba(247,198,255,.35); }
 
-/* Paso cuentas */
+/* Paso 2: búsqueda de cuentas */
 .account-step { display: grid; gap: .8rem; }
 .account-search input {
   width: 100%; padding: .7rem .9rem;
@@ -165,7 +209,9 @@
   outline: none;
 }
 .account-list {
-  display: grid; gap: .5rem; max-height: 320px; overflow: auto;  /* scroll interno */
+  display: grid; gap: .5rem; max-height: 320px;
+  overflow-y: auto;          /* scroll interno si hace falta */
+  overflow-x: hidden;        /* sin scroll horizontal */
 }
 .account-item {
   display: grid; grid-template-columns: auto 1fr auto; align-items: center;
@@ -183,6 +229,6 @@
 /* Límite general del panel para que no empuje la página completa */
 .card-panel {
   max-height: calc(100dvh - 2.5rem);
-  overflow: auto;     /* si sobra, scroll interno del panel */
+  overflow: auto;     /* scroll interno del panel si hace falta */
   min-height: 0;
 }
