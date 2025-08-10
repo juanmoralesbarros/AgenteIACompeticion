@@ -183,12 +183,12 @@ const Chat: React.FC = () => {
         {mode === "kpi" && (
           <div className="chat-kpi-wrap">
             {/* Panel judicial individual */}
-            <div className="card tone-chat" style={{ marginBottom: 12 }}>
+            {/* <div className="card tone-chat" style={{ marginBottom: 12 }}>
               <div className="card-header">
                 <h3>Consulta Judicial</h3><span className="badge">API</span>
               </div>
               <Legal onUseInScoring={(partial) => applyLegalPartial(partial)} />
-            </div>
+            </div> */}
 
             {/* Panel judicial de Nómina (batch) */}
             <div className="card tone-chat" style={{ marginBottom: 12 }}>
