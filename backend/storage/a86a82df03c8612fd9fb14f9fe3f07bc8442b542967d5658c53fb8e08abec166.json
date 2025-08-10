@@ -16,7 +16,7 @@
     "activos_no_corrientes": 0.9,
     "activos_totales": 0.9,
     "pasivos_corrientes": 0.9,
-    "pasivos_no_corrientes": 0.3,
+    "pasivos_no_corrientes": 0.9,
     "pasivos_totales": 0.9,
     "inventarios": 0.9
   },
@@ -92,9 +92,19 @@
     }
   },
   "extraction_model": "LangChain(gpt-4o-mini) + Chroma(text-embedding-3-small)",
+  "header_meta": {
+    "empresa": "RUC\nSCV.NIIF.90614.2024.1\nEXPEDIENTE\nPANIFICADORA AMBATO PANAMBATO CIA. LTDA\nDIRECCI",
+    "anio": "2024",
+    "moneda": "USD",
+    "scale_factor": 1.0
+  },
+  "data_quality": {
+    "non_null_ratio": 1.0,
+    "balance_markers_hits": 2,
+    "scale_factor": 1.0
+  },
   "notes": [
-    "Extracción LLM-first con RAG por campo (k=5).",
-    "Se derivan totales cuando faltan corrientes/no corrientes.",
-    "Si 'is_balance' es false, se debe pedir el Balance SCVS."
+    "Extracción con contexto por campo (prompt específico).",
+    "Totales derivados si faltan corrientes/no corrientes."
   ]
 }
